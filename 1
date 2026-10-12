@@ -1,1 +1,164 @@
+import time
+import random
+import matplotlib.pyplot as plt
 
+# ---------------------------------------------------------
+# 1. РЕАЛИЗАЦИЯ АЛГОРИТМОВ СОРТИРОВКИ
+# ---------------------------------------------------------
+
+def bubble_sort(arr):
+    """Пузырьковая сортировка"""
+    iterations = 0
+    n = len(arr)
+    # Копируем массив, чтобы не менять исходный
+    a = arr.copy()
+    
+    for i in range(n):
+        swapped = False
+        for j in range(0, n - i - 1):
+            iterations += 1  # Считаем каждое сравнение
+            if a[j] > a[j + 1]:
+                a[j], a[j + 1] = a[j + 1], a[j]
+                swapped = True
+        if not swapped:
+            break
+            
+    return a, iterations
+
+
+def quick_sort(arr):
+    """Быстрая сортировка (рекурсивная)"""
+    # Используем список для счетчика, чтобы изменять его внутри функции
+    iterations = [0] 
+    a = arr.copy()
+    
+    def _quick_sort(items):
+        if len(items) <= 1:
+            return items
+        
+        pivot = items[len(items) // 2]
+        left = []
+        middle = []
+        right = []
+        
+        for item in items:
+            iterations[0] += 1  # Считаем каждое сравнение с опорным элементом
+            if item < pivot:
+                left.append(item)
+            elif item > pivot:
+                right.append(item)
+            else:
+                middle.append(item)
+                
+        return _quick_sort(left) + middle + _quick_sort(right)
+    
+    sorted_arr = _quick_sort(a)
+    return sorted_arr, iterations[0]
+
+
+def insertion_sort(arr):
+    """Сортировка вставками"""
+    iterations = 0
+    a = arr.copy()
+    
+    for i in range(1, len(a)):
+        key = a[i]
+        j = i - 1
+        while j >= 0:
+            iterations += 1  # Считаем каждое сравнение
+            if a[j] > key:
+                a[j + 1] = a[j]
+                j -= 1
+            else:
+                break
+        a[j + 1] = key
+        
+    return a, iterations
+
+
+# ---------------------------------------------------------
+# 2. СБОР ДАННЫХ ДЛЯ ГРАФИКА
+# ---------------------------------------------------------
+
+def run_experiments():
+    # Размеры массивов для тестирования (от 100 до 2000)
+    sizes = [100, 300, 500, 800, 1000, 1500, 2000]
+    
+    # Словари для хранения результатов
+    times = {'Bubble': [], 'Quick': [], 'Insertion': []}
+    iters = {'Bubble': [], 'Quick': [], 'Insertion': []}
+    
+    print(f"{'Размер':<10} | {'Сортировка':<12} | {'Время (сек)':<12} | {'Итерации':<10}")
+    print("-" * 55)
+
+    for size in sizes:
+        # Генерируем случайный массив
+        arr = [random.randint(0, 10000) for _ in range(size)]
+        
+        # --- Пузырьковая ---
+        start = time.time()
+        _, it = bubble_sort(arr)
+        end = time.time()
+        times['Bubble'].append(end - start)
+        iters['Bubble'].append(it)
+        print(f"{size:<10} | {'Bubble':<12} | {end - start:<12.5f} | {it:<10}")
+        
+        # --- Быстрая ---
+        start = time.time()
+        _, it = quick_sort(arr)
+        end = time.time()
+        times['Quick'].append(end - start)
+        iters['Quick'].append(it)
+        print(f"{size:<10} | {'Quick':<12} | {end - start:<12.5f} | {it:<10}")
+        
+        # --- Вставками ---
+        start = time.time()
+        _, it = insertion_sort(arr)
+        end = time.time()
+        times['Insertion'].append(end - start)
+        iters['Insertion'].append(it)
+        print(f"{size:<10} | {'Insertion':<12} | {end - start:<12.5f} | {it:<10}")
+        
+        print("-" * 55)
+
+    return sizes, times, iters
+
+
+# ---------------------------------------------------------
+# 3. ПОСТРОЕНИЕ ГРАФИКОВ
+# ---------------------------------------------------------
+
+def plot_results(sizes, times, iters):
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+    
+    # График времени выполнения
+    ax1.plot(sizes, times['Bubble'], marker='o', label='Пузырьковая')
+    ax1.plot(sizes, times['Quick'], marker='s', label='Быстрая')
+    ax1.plot(sizes, times['Insertion'], marker='^', label='Вставками')
+    ax1.set_title('Время выполнения сортировок')
+    ax1.set_xlabel('Размер массива')
+    ax1.set_ylabel('Время (секунды)')
+    ax1.legend()
+    ax1.grid(True)
+    
+    # График количества итераций
+    ax2.plot(sizes, iters['Bubble'], marker='o', label='Пузырьковая')
+    ax2.plot(sizes, iters['Quick'], marker='s', label='Быстрая')
+    ax2.plot(sizes, iters['Insertion'], marker='^', label='Вставками')
+    ax2.set_title('Количество итераций (сравнений)')
+    ax2.set_xlabel('Размер массива')
+    ax2.set_ylabel('Количество итераций')
+    ax2.legend()
+    ax2.grid(True)
+    
+    plt.tight_layout()
+    plt.show()
+
+
+# ---------------------------------------------------------
+# ЗАПУСК
+# ---------------------------------------------------------
+
+if __name__ == "__main__":
+    sizes, times, iters = run_experiments()
+    plot_results(sizes, times, iters)
